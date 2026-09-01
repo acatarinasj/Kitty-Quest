@@ -466,7 +466,7 @@ $("#age-back").onclick    = () => { currentAge=null; showActScreen("home"); };
 /* ---------------- ecrã 1: grelha de idades ---------------- */
 function renderAgeGrid(){
   const box = $("#age-grid");
-  const countFor = a => data.activities.filter(x=>x.age===a).length;
+  const countFor = a => a==="todas" ? data.activities.length : data.activities.filter(x=>x.age===a).length;
   let html = `<div class="age-tile all" style="--tone:var(--peri)" data-age="todas">
       <span><span class="num">Todas as idades</span><span class="cnt">${countFor("todas")} atividades</span></span>
     </div>`;
@@ -498,7 +498,7 @@ function renderAgeDetail(){
   };
 
   const list = data.activities
-    .filter(a=>a.age===currentAge)
+    .filter(a=>currentAge==="todas" || a.age===currentAge)
     .filter(a=>currentAgeCat==="all" || a.category===currentAgeCat)
     .sort((a,b)=>(a.date||"9999").localeCompare(b.date||"9999"));
 
@@ -549,7 +549,7 @@ $("#shop-age-back").onclick= () => { currentShopAge=null; showShopScreen("home")
 /* ---------------- ecrã 1: grelha de idades (compras) ---------------- */
 function renderShopAgeGrid(){
   const box = $("#shop-age-grid");
-  const countFor = a => data.shopping.filter(x=>x.age===a).length;
+  const countFor = a => a==="todas" ? data.shopping.length : data.shopping.filter(x=>x.age===a).length;
   let html = `<div class="age-tile all" style="--tone:var(--peri)" data-age="todas">
       <span><span class="num">Todas as idades</span><span class="cnt">${countFor("todas")} compras</span></span>
     </div>`;
@@ -581,7 +581,7 @@ function renderShopAgeDetail(){
   };
 
   const list = data.shopping
-    .filter(s=>s.age===currentShopAge)
+    .filter(s=>currentShopAge==="todas" || s.age===currentShopAge)
     .filter(s=>currentShopAgeCat==="all" || s.category===currentShopAgeCat);
 
   const itemsBox = $("#shop-age-items");
