@@ -134,6 +134,13 @@
     font-size:14px;font-weight:800;line-height:1;display:grid;place-items:center
   }
   .del:hover{background:var(--pink)}
+  .edit{
+    position:absolute;top:9px;right:41px;width:26px;height:26px;border-radius:50%;
+    border:3px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer;
+    font-size:13px;font-weight:800;line-height:1;display:grid;place-items:center
+  }
+  .edit:hover{background:var(--yellow)}
+  .item.has-edit h3{padding-right:58px}
 
   .empty-note{background:var(--paper);border:4px dashed var(--ink);border-radius:22px;padding:26px 18px;text-align:center;color:#5B6C8C;font-weight:700}
   .empty-note strong{display:block;font-family:"Baloo 2",cursive;font-size:20px;color:var(--ink);margin-bottom:4px}
@@ -233,7 +240,7 @@
     <div id="act-add" class="hidden">
       <button class="back-btn" id="add-back">‹ Voltar</button>
       <div class="card">
-        <h2 style="margin-bottom:14px">Nova atividade</h2>
+        <h2 id="a-form-title" style="margin-bottom:14px">Nova atividade</h2>
         <div class="grid">
           <div class="full">
             <label for="a-title">Título</label>
@@ -420,6 +427,7 @@ function fillSelects(){
 let currentAge = null;
 let currentAgeCat = "all";
 let addOrigin = "home";
+let editingId = null;
 
 function showActScreen(name){
   $("#act-home").classList.toggle("hidden", name!=="home");
@@ -427,8 +435,31 @@ function showActScreen(name){
   $("#act-add").classList.toggle("hidden", name!=="add");
 }
 
-$("#go-add-home").onclick = () => { addOrigin="home"; $("#a-age").value = "todas"; showActScreen("add"); };
-$("#go-add-age").onclick  = () => { addOrigin="age"; $("#a-age").value = currentAge; showActScreen("add"); };
+function resetActivityForm(){
+  editingId = null;
+  $("#a-form-title").textContent = "Nova atividade";
+  $("#a-save").textContent = "Guardar atividade";
+  ["#a-title","#a-desc","#a-link","#a-date"].forEach(s=>$(s).value="");
+}
+
+function openEditActivity(id){
+  const it = data.activities.find(a=>a.id===id);
+  if(!it) return;
+  editingId = id;
+  addOrigin = currentAge!==null ? "age" : "home";
+  $("#a-form-title").textContent = "Editar atividade";
+  $("#a-save").textContent = "Guardar alterações";
+  $("#a-title").value = it.title;
+  $("#a-desc").value = it.desc;
+  $("#a-cat").value = it.category;
+  $("#a-age").value = it.age;
+  $("#a-date").value = it.date || "";
+  $("#a-link").value = it.link;
+  showActScreen("add");
+}
+
+$("#go-add-home").onclick = () => { resetActivityForm(); addOrigin="home"; $("#a-age").value = "todas"; showActScreen("add"); };
+$("#go-add-age").onclick  = () => { resetActivityForm(); addOrigin="age"; $("#a-age").value = currentAge; showActScreen("add"); };
 $("#add-back").onclick    = () => showActScreen(addOrigin==="age" ? "age" : "home");
 $("#age-back").onclick    = () => { currentAge=null; showActScreen("home"); };
 
@@ -482,7 +513,9 @@ function itemCard(it, kind){
   const c = cat(it.category);
   const url = safeUrl(it.link);
   const date = prettyDate(it.date);
-  return `<article class="item" style="--tone:${c.tone}">
+  const canEdit = kind==="activities";
+  return `<article class="item ${canEdit?"has-edit":""}" style="--tone:${c.tone}">
+    ${canEdit?`<button class="edit" data-edit="${it.id}" aria-label="Editar ${esc(it.title)}">✎</button>`:""}
     <button class="del" data-del="${it.id}" data-kind="${kind}" aria-label="Apagar ${esc(it.title)}">×</button>
     <div class="body">
       <h3>${esc(it.title)}</h3>
@@ -628,9 +661,11 @@ $("#a-save").onclick = async () => {
     activity_date: $("#a-date").value || null,
     link: $("#a-link").value.trim() || null
   };
-  const { error } = await supa.from("kq_activities").insert(payload);
+  const { error } = editingId
+    ? await supa.from("kq_activities").update(payload).eq("id", editingId)
+    : await supa.from("kq_activities").insert(payload);
   if(error){ alert("Não foi possível guardar a atividade: " + error.message); return; }
-  ["#a-title","#a-desc","#a-link","#a-date"].forEach(s=>$(s).value="");
+  resetActivityForm();
   await fetchAll();
   if(addOrigin==="age"){ renderAgeDetail(); showActScreen("age"); }
   else showActScreen("home");
@@ -653,6 +688,12 @@ $("#s-save").onclick = async () => {
   if(shopAddOrigin==="age"){ renderShopAgeDetail(); showShopScreen("age"); }
   else showShopScreen("home");
 };
+
+/* ---------------- editar ---------------- */
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-edit]"); if(!b) return;
+  openEditActivity(b.dataset.edit);
+});
 
 /* ---------------- apagar ---------------- */
 document.addEventListener("click", async e => {
