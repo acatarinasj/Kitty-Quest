@@ -123,11 +123,8 @@
   .meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
   .pill{font-size:12.5px;font-weight:800;border-radius:999px;padding:4px 10px;border:2.5px solid var(--ink);background:var(--tone,var(--sky));color:var(--ink)}
   .pill.plain{background:var(--cream)}
-  .go{
-    display:inline-block;margin-top:10px;font-family:"Baloo 2",cursive;font-size:16px;
-    color:var(--ink);text-decoration:none;background:var(--cream);border:3px solid var(--ink);border-radius:999px;padding:5px 14px;
-  }
-  .go:hover{background:var(--orange)}
+  .pill.link{text-decoration:none;cursor:pointer}
+  .pill.link:hover{background:var(--orange)}
   .del{
     position:absolute;top:9px;right:9px;width:26px;height:26px;border-radius:50%;
     border:3px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer;
@@ -524,8 +521,8 @@ function itemCard(it, kind){
         <span class="pill">${c.label}</span>
         <span class="pill plain">${it.age==="todas"?"Todas as idades":it.age+" anos"}</span>
         ${date?`<span class="pill plain">${date}</span>`:""}
+        ${url?`<a class="pill plain link" href="${esc(url)}" target="_blank" rel="noopener noreferrer">Link</a>`:""}
       </div>
-      ${url?`<a class="go" href="${esc(url)}" target="_blank" rel="noopener noreferrer">Abrir site</a>`:""}
     </div>
   </article>`;
 }
