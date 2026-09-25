@@ -143,24 +143,13 @@
   .empty-note strong{display:block;font-family:"Baloo 2",cursive;font-size:20px;color:var(--ink);margin-bottom:4px}
   .hidden{display:none !important}
 
-  /* ---------- calendário ---------- */
-  .calbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
-  .calbar h2{text-transform:capitalize}
-  .arrow{width:42px;height:42px;border-radius:50%;border:4px solid var(--ink);background:var(--paper);cursor:pointer;font-size:19px;font-weight:800;color:var(--ink);box-shadow:0 4px 0 rgba(34,53,90,.14)}
-  .arrow:hover{background:var(--peri)}
-  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-  .dow{text-align:center;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#5B6C8C;padding-bottom:2px}
-  .day{
-    aspect-ratio:1/1;background:var(--cream);border:3px solid transparent;border-radius:16px;cursor:pointer;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-weight:800;font-size:15px;color:var(--ink);
-  }
-  .day.empty{background:transparent;cursor:default}
-  .day.has{background:var(--paper);border-color:var(--ink)}
-  .day.today{box-shadow:inset 0 0 0 3px var(--orange)}
-  .day[aria-pressed="true"]{background:var(--orange);border-color:var(--ink)}
-  .dots{display:flex;gap:3px;height:8px}
-  .dot{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--ink)}
-  .dayview{margin-top:16px;border-top:3px dashed #E6DCC8;padding-top:14px}
+  /* ---------- prendas ---------- */
+  .item.settled{opacity:.55}
+  .item.settled h3{text-decoration:line-through}
+  .totals-card{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .totals-card .lbl{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:#5B6C8C;display:block}
+  .totals-card .amount{font-family:"Baloo 2",cursive;font-size:30px}
+  .settle-btn{width:100%;margin-top:10px}
 
   .boot-error{display:none;background:var(--pink);color:var(--ink);font-weight:800;border:3px solid var(--ink);border-radius:16px;padding:10px 14px;margin:16px 0;text-align:center}
   footer{text-align:center;color:#5B6C8C;font-size:13px;letter-spacing:.16em;text-transform:uppercase;margin:26px 0 10px}
@@ -206,7 +195,7 @@
 
   <nav class="tabs" role="tablist" aria-label="Secções">
     <button class="tab" role="tab" id="tab-act" aria-selected="true" data-view="act">Atividades</button>
-    <button class="tab" role="tab" id="tab-cal" aria-selected="false" data-view="cal">Calendário</button>
+    <button class="tab" role="tab" id="tab-gifts" aria-selected="false" data-view="gifts">Prendas</button>
     <button class="tab" role="tab" id="tab-shop" aria-selected="false" data-view="shop">Compras</button>
   </nav>
 
@@ -272,17 +261,50 @@
 
   </section>
 
-  <!-- ======== CALENDÁRIO ======== -->
-  <section id="view-cal" role="tabpanel" aria-labelledby="tab-cal" class="hidden">
-    <div class="card">
-      <div class="calbar">
-        <button class="arrow" id="cal-prev" aria-label="Mês anterior">‹</button>
-        <h2 id="cal-title" style="justify-content:center"></h2>
-        <button class="arrow" id="cal-next" aria-label="Mês seguinte">›</button>
+  <!-- ======== PRENDAS ======== -->
+  <section id="view-gifts" role="tabpanel" aria-labelledby="tab-gifts" class="hidden">
+
+    <!-- ecrã 1: listagem -->
+    <div id="gifts-list">
+      <div class="section-head">
+        <h2>Prendas</h2>
+        <button class="btn-cta" id="go-add-gift">Nova prenda</button>
       </div>
-      <div class="cal" id="cal-grid"></div>
-      <div class="dayview" id="cal-day"></div>
+      <div class="card totals-card">
+        <span><span class="lbl">Total por saldar</span><span class="amount" id="gifts-total"></span></span>
+      </div>
+      <div id="gifts-items"></div>
     </div>
+
+    <!-- ecrã 2: nova prenda -->
+    <div id="gift-add" class="hidden">
+      <button class="back-btn" id="gift-add-back">‹ Voltar</button>
+      <div class="card">
+        <h2 style="margin-bottom:14px">Nova prenda</h2>
+        <div class="grid">
+          <div class="full">
+            <label for="g-item">Item</label>
+            <input id="g-item" placeholder="Bicicleta">
+          </div>
+          <div>
+            <label for="g-buyer">Quem compra</label>
+            <input id="g-buyer" placeholder="Nome">
+          </div>
+          <div>
+            <label for="g-giver">Quem dá</label>
+            <input id="g-giver" placeholder="Nome">
+          </div>
+          <div>
+            <label for="g-value">Valor (€)</label>
+            <input id="g-value" type="number" min="0" step="0.01" placeholder="0.00">
+          </div>
+          <div class="full" style="text-align:right">
+            <button class="btn-cta" id="g-save">Guardar prenda</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </section>
 
   <!-- ======== COMPRAS ======== -->
@@ -368,7 +390,6 @@ const ageLabel = a => a==="todas" ? "Todas as idades" : a+" anos";
 const ageTone = a => a==="todas" ? "var(--peri)" : AGE_TONES[Number(a)%AGE_TONES.length];
 const cat = id => CATS.find(c=>c.id===id) || CATS[0];
 const MONTHS = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
-const DOW = ["S","T","Q","Q","S","S","D"];
 
 /* ---------------- ligação à base de dados (Supabase) ---------------- */
 const SUPABASE_URL = "https://nvbsddegwrfehvyclpsd.supabase.co";
@@ -376,21 +397,25 @@ const SUPABASE_KEY = "sb_publishable_USK5NaKdSEoFQnROFr3fXg_gYb00Tsg";
 const supa = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
 /* ---------------- dados (guardados no Supabase, não no dispositivo) ---------------- */
-let data = {activities:[], shopping:[]};
+let data = {activities:[], shopping:[], gifts:[]};
 
 const mapActivityFromDb = r => ({ id:r.id, title:r.title, desc:r.description||"", category:r.category, age:r.age, date:r.activity_date||"", link:r.link||"" });
 const mapShoppingFromDb = r => ({ id:r.id, title:r.title, desc:r.description||"", category:r.category, age:r.age, link:r.link||"" });
+const mapGiftFromDb = r => ({ id:r.id, item:r.item, buyer:r.buyer||"", giver:r.giver||"", value:Number(r.value)||0, settled:!!r.settled });
 
 async function fetchAll(){
   if(!supa) return;
-  const [actRes, shopRes] = await Promise.all([
+  const [actRes, shopRes, giftRes] = await Promise.all([
     supa.from("kq_activities").select("*").order("activity_date", {ascending:true, nullsFirst:false}),
-    supa.from("kq_shopping").select("*").order("created_at", {ascending:false})
+    supa.from("kq_shopping").select("*").order("created_at", {ascending:false}),
+    supa.from("kq_gifts").select("*").order("created_at", {ascending:false})
   ]);
   if(actRes.error) console.error(actRes.error);
   if(shopRes.error) console.error(shopRes.error);
+  if(giftRes.error) console.error(giftRes.error);
   data.activities = (actRes.data||[]).map(mapActivityFromDb);
   data.shopping = (shopRes.data||[]).map(mapShoppingFromDb);
+  data.gifts = (giftRes.data||[]).map(mapGiftFromDb);
   renderAll();
 }
 
@@ -398,7 +423,7 @@ async function fetchAll(){
 const $ = s => document.querySelector(s);
 const uid = () => (crypto.randomUUID ? crypto.randomUUID() : "id-" + Date.now() + "-" + Math.random().toString(16).slice(2));
 const esc = s => String(s??"").replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const formatEuro = v => (Number(v)||0).toLocaleString("pt-PT", {style:"currency", currency:"EUR"});
 function prettyDate(s){
   if(!s) return null;
   const [y,m,d] = s.split("-").map(Number);
@@ -592,58 +617,49 @@ function renderShopping(){
   if(currentShopAge!==null) renderShopAgeDetail();
 }
 
-/* ---------------- calendário ---------------- */
-let calRef = new Date(); calRef.setDate(1);
-let selectedDay = null;
-
-function renderCalendar(){
-  const y = calRef.getFullYear(), m = calRef.getMonth();
-  $("#cal-title").textContent = `${MONTHS[m]} ${y}`;
-  const first = new Date(y,m,1);
-  const startPad = (first.getDay()+6)%7;
-  const days = new Date(y,m+1,0).getDate();
-  const todayIso = iso(new Date());
-
-  let html = DOW.map(d=>`<div class="dow">${d}</div>`).join("");
-  for(let i=0;i<startPad;i++) html += `<div class="day empty"></div>`;
-  for(let d=1;d<=days;d++){
-    const key = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-    const hits = data.activities.filter(a=>a.date===key);
-    const dots = hits.slice(0,3).map(h=>`<span class="dot" style="background:${cat(h.category).tone}"></span>`).join("");
-    html += `<button class="day ${hits.length?"has":""} ${key===todayIso?"today":""}"
-      data-day="${key}" aria-pressed="${selectedDay===key}">
-      <span>${d}</span><span class="dots">${dots}</span></button>`;
-  }
-  $("#cal-grid").innerHTML = html;
-  $("#cal-grid").onclick = e => {
-    const b = e.target.closest(".day[data-day]"); if(!b) return;
-    selectedDay = selectedDay===b.dataset.day ? null : b.dataset.day;
-    renderCalendar();
-  };
-  renderDayView();
+/* ---------------- separador Prendas ---------------- */
+function showGiftsScreen(name){
+  $("#gifts-list").classList.toggle("hidden", name!=="list");
+  $("#gift-add").classList.toggle("hidden", name!=="add");
 }
-function renderDayView(){
-  const box = $("#cal-day");
-  if(!selectedDay){
-    const upcoming = data.activities.filter(a=>a.date && a.date>=iso(new Date()))
-      .sort((a,b)=>a.date.localeCompare(b.date)).slice(0,3);
-    box.innerHTML = `<p style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#5B6C8C">A seguir</p>` + (upcoming.length
-      ? `<div class="items">${upcoming.map(i=>itemCard(i,"activities")).join("")}</div>`
-      : `<div class="empty-note"><strong>Nenhuma data marcada</strong>Escolhe um dia no calendário ou marca uma data numa atividade.</div>`);
-    return;
-  }
-  const hits = data.activities.filter(a=>a.date===selectedDay);
-  box.innerHTML = `<p style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#5B6C8C">${prettyDate(selectedDay)}</p>` + (hits.length
-    ? `<div class="items">${hits.map(i=>itemCard(i,"activities")).join("")}</div>`
-    : `<div class="empty-note"><strong>Dia livre</strong>Sem atividades marcadas para este dia.</div>`);
+
+$("#go-add-gift").onclick = () => {
+  ["#g-item","#g-buyer","#g-giver","#g-value"].forEach(s=>$(s).value="");
+  showGiftsScreen("add");
+};
+$("#gift-add-back").onclick = () => showGiftsScreen("list");
+
+function giftCard(g){
+  return `<article class="item ${g.settled?"settled":""}" style="--tone:var(--yellow)">
+    <button class="del" data-del="${g.id}" data-kind="gifts" aria-label="Apagar ${esc(g.item)}">×</button>
+    <div class="body">
+      <h3>${esc(g.item)}</h3>
+      <div class="meta">
+        ${g.buyer?`<span class="pill plain">Compra: ${esc(g.buyer)}</span>`:""}
+        ${g.giver?`<span class="pill plain">Dá: ${esc(g.giver)}</span>`:""}
+        <span class="pill">${formatEuro(g.value)}</span>
+      </div>
+      <button class="btn-cta settle-btn" data-settle="${g.id}">${g.settled?"Dívida saldada ✓":"Marcar como saldada"}</button>
+    </div>
+  </article>`;
+}
+
+function renderGifts(){
+  const itemsBox = $("#gifts-items");
+  itemsBox.innerHTML = data.gifts.length
+    ? `<div class="items">${data.gifts.map(giftCard).join("")}</div>`
+    : `<div class="empty-note"><strong>Ainda não há prendas</strong>Usa o botão "Nova prenda" para começar.</div>`;
+
+  const total = data.gifts.filter(g=>!g.settled).reduce((sum,g)=>sum+g.value, 0);
+  $("#gifts-total").textContent = formatEuro(total);
 }
 
 /* ---------------- separadores principais ---------------- */
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
   document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected", String(x===t)));
-  ["act","cal","shop"].forEach(v=>$("#view-"+v).classList.toggle("hidden", v!==t.dataset.view));
+  ["act","gifts","shop"].forEach(v=>$("#view-"+v).classList.toggle("hidden", v!==t.dataset.view));
   if(t.dataset.view==="act"){ currentAge=null; showActScreen("home"); renderAgeGrid(); }
-  if(t.dataset.view==="cal") renderCalendar();
+  if(t.dataset.view==="gifts"){ showGiftsScreen("list"); renderGifts(); }
   if(t.dataset.view==="shop"){ currentShopAge=null; showShopScreen("home"); renderShopAgeGrid(); }
 });
 
@@ -686,6 +702,33 @@ $("#s-save").onclick = async () => {
   else showShopScreen("home");
 };
 
+/* ---------------- guardar nova prenda ---------------- */
+$("#g-save").onclick = async () => {
+  const item = $("#g-item").value.trim();
+  if(!item){ $("#g-item").focus(); $("#g-item").style.borderColor="var(--pink)"; return; }
+  $("#g-item").style.borderColor="var(--ink)";
+  const payload = {
+    item,
+    buyer: $("#g-buyer").value.trim() || null,
+    giver: $("#g-giver").value.trim() || null,
+    value: Number($("#g-value").value) || 0
+  };
+  const { error } = await supa.from("kq_gifts").insert(payload);
+  if(error){ alert("Não foi possível guardar a prenda: " + error.message); return; }
+  ["#g-item","#g-buyer","#g-giver","#g-value"].forEach(s=>$(s).value="");
+  await fetchAll();
+  showGiftsScreen("list");
+};
+
+/* ---------------- saldar dívida ---------------- */
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-settle]"); if(!b) return;
+  const gift = data.gifts.find(g=>g.id===b.dataset.settle); if(!gift) return;
+  const { error } = await supa.from("kq_gifts").update({settled: !gift.settled}).eq("id", gift.id);
+  if(error){ alert("Não foi possível atualizar a prenda: " + error.message); return; }
+  await fetchAll();
+});
+
 /* ---------------- editar ---------------- */
 document.addEventListener("click", e => {
   const b = e.target.closest("[data-edit]"); if(!b) return;
@@ -693,9 +736,10 @@ document.addEventListener("click", e => {
 });
 
 /* ---------------- apagar ---------------- */
+const DEL_TABLES = {activities:"kq_activities", shopping:"kq_shopping", gifts:"kq_gifts"};
 document.addEventListener("click", async e => {
   const b = e.target.closest("[data-del]"); if(!b) return;
-  const table = b.dataset.kind==="activities" ? "kq_activities" : "kq_shopping";
+  const table = DEL_TABLES[b.dataset.kind] || "kq_shopping";
   const { error } = await supa.from(table).delete().eq("id", b.dataset.del);
   if(error){ alert("Não foi possível apagar: " + error.message); return; }
   await fetchAll();
@@ -703,15 +747,12 @@ document.addEventListener("click", async e => {
   if(currentShopAge!==null) renderShopAgeDetail();
 });
 
-$("#cal-prev").onclick = () => { calRef.setMonth(calRef.getMonth()-1); renderCalendar(); };
-$("#cal-next").onclick = () => { calRef.setMonth(calRef.getMonth()+1); renderCalendar(); };
-
 /* ---------------- arranque ---------------- */
 function renderAll(){
   renderAgeGrid();
   if(currentAge!==null) renderAgeDetail();
   renderShopping();
-  renderCalendar();
+  renderGifts();
 }
 
 fillSelects();
@@ -746,7 +787,7 @@ $("#login-pass").addEventListener("keydown", e => { if(e.key==="Enter") $("#logi
 
 $("#logout-btn").onclick = async () => {
   if(supa) await supa.auth.signOut();
-  data = {activities:[], shopping:[]};
+  data = {activities:[], shopping:[], gifts:[]};
   renderAll();
   showLogin();
 };
