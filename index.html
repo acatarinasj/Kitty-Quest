@@ -146,13 +146,20 @@
   /* ---------- prendas ---------- */
   .item.settled{opacity:.55}
   .item.settled h3{text-decoration:line-through}
-  .lbl{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:#5B6C8C}
-  .totals-card{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-  .totals-card .lbl{display:block}
-  .totals-card .amount{font-family:"Baloo 2",cursive;font-size:30px}
+  .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#5B6C8C;display:block}
   .settle-btn{width:100%;margin-top:10px}
-  .buyer-row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:2px dashed #E6DCC8;font-weight:800}
-  .buyer-row:last-child{border-bottom:none}
+  .totals-head{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+    margin-bottom:12px;padding-bottom:12px;border-bottom:2px dashed #E6DCC8;
+  }
+  .totals-head .amount{font-family:"Baloo 2",cursive;font-size:20px}
+  .totals-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+  .totals-col .lbl{margin-bottom:5px}
+  .buyer-row{display:flex;justify-content:space-between;gap:8px;padding:2px 0;font-size:12.5px;font-weight:800}
+  .cat-group{margin-bottom:5px}
+  .cat-group:last-child{margin-bottom:0}
+  .cat-group .cat-name{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:#5B6C8C;display:block;margin:5px 0 1px}
+  .totals-empty{margin:0;font-size:12.5px;font-weight:700;color:#5B6C8C}
 
   .boot-error{display:none;background:var(--pink);color:var(--ink);font-weight:800;border:3px solid var(--ink);border-radius:16px;padding:10px 14px;margin:16px 0;text-align:center}
   footer{text-align:center;color:#5B6C8C;font-size:13px;letter-spacing:.16em;text-transform:uppercase;margin:26px 0 10px}
@@ -274,11 +281,24 @@
         <button class="btn-cta" id="go-add-gift">Nova prenda</button>
       </div>
       <div class="card totals-card">
-        <span><span class="lbl">Total por saldar</span><span class="amount" id="gifts-total"></span></span>
-      </div>
-      <div class="card">
-        <span class="lbl" style="display:block;margin-bottom:8px">Total por quem compra</span>
-        <div id="gifts-by-buyer"></div>
+        <div class="totals-head">
+          <span class="lbl">Total por saldar</span>
+          <span class="amount" id="gifts-total"></span>
+        </div>
+        <div class="totals-grid">
+          <div class="totals-col">
+            <span class="lbl">Por quem compra</span>
+            <div id="gifts-by-buyer"></div>
+          </div>
+          <div class="totals-col">
+            <span class="lbl">Por quem dá</span>
+            <div id="gifts-by-giver"></div>
+          </div>
+          <div class="totals-col">
+            <span class="lbl">Por para quem</span>
+            <div id="gifts-by-recipient"></div>
+          </div>
+        </div>
       </div>
       <div id="gifts-items"></div>
     </div>
@@ -669,6 +689,20 @@ function giftCard(g){
   </article>`;
 }
 
+function totalsByKey(list, keyFn){
+  const sums = {};
+  list.forEach(g=>{
+    const key = keyFn(g) || "Sem indicação";
+    sums[key] = (sums[key]||0) + g.value;
+  });
+  return Object.keys(sums).sort((a,b)=>a.localeCompare(b,"pt")).map(k=>({label:k, value:sums[k]}));
+}
+function totalRowsHtml(rows){
+  return rows.length
+    ? rows.map(r=>`<div class="buyer-row"><span>${esc(r.label)}</span><span>${formatEuro(r.value)}</span></div>`).join("")
+    : `<p class="totals-empty">Sem valores.</p>`;
+}
+
 function renderGifts(){
   const itemsBox = $("#gifts-items");
   itemsBox.innerHTML = data.gifts.length
@@ -678,15 +712,15 @@ function renderGifts(){
   const unsettled = data.gifts.filter(g=>!g.settled);
   $("#gifts-total").textContent = formatEuro(unsettled.reduce((sum,g)=>sum+g.value, 0));
 
-  const byBuyer = {};
-  unsettled.forEach(g=>{
-    const key = g.buyer || "Sem indicação";
-    byBuyer[key] = (byBuyer[key]||0) + g.value;
-  });
-  const buyers = Object.keys(byBuyer).sort((a,b)=>a.localeCompare(b,"pt"));
-  $("#gifts-by-buyer").innerHTML = buyers.length
-    ? buyers.map(b=>`<div class="buyer-row"><span>${esc(b)}</span><span>${formatEuro(byBuyer[b])}</span></div>`).join("")
-    : `<p style="margin:0;font-weight:700;color:#5B6C8C">Sem valores por saldar.</p>`;
+  $("#gifts-by-buyer").innerHTML = totalRowsHtml(totalsByKey(unsettled, g=>g.buyer));
+  $("#gifts-by-giver").innerHTML = totalRowsHtml(totalsByKey(unsettled, g=>g.giver));
+
+  const byCatHtml = GIFT_CATS.map(c=>{
+    const inCat = unsettled.filter(g=>g.category===c.id);
+    if(!inCat.length) return "";
+    return `<div class="cat-group"><span class="cat-name">${c.label}</span>${totalRowsHtml(totalsByKey(inCat, g=>g.recipient))}</div>`;
+  }).join("");
+  $("#gifts-by-recipient").innerHTML = byCatHtml || `<p class="totals-empty">Sem valores.</p>`;
 }
 
 /* ---------------- separadores principais ---------------- */
