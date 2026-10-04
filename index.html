@@ -143,23 +143,6 @@
   .empty-note strong{display:block;font-family:"Baloo 2",cursive;font-size:20px;color:var(--ink);margin-bottom:4px}
   .hidden{display:none !important}
 
-  /* ---------- prendas ---------- */
-  .item.settled{opacity:.55}
-  .item.settled h3{text-decoration:line-through}
-  .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#5B6C8C;display:block}
-  .settle-btn{width:100%;margin-top:10px}
-  .totals-head{
-    display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
-    margin-bottom:12px;padding-bottom:12px;border-bottom:2px dashed #E6DCC8;
-  }
-  .totals-head .amount{font-family:"Baloo 2",cursive;font-size:20px}
-  .totals-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
-  .totals-col .lbl{margin-bottom:5px}
-  .buyer-row{display:flex;justify-content:space-between;gap:8px;padding:2px 0;font-size:12.5px;font-weight:800}
-  .cat-group{margin-bottom:5px}
-  .cat-group:last-child{margin-bottom:0}
-  .cat-group .cat-name{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:#5B6C8C;display:block;margin:5px 0 1px}
-  .totals-empty{margin:0;font-size:12.5px;font-weight:700;color:#5B6C8C}
 
   .boot-error{display:none;background:var(--pink);color:var(--ink);font-weight:800;border:3px solid var(--ink);border-radius:16px;padding:10px 14px;margin:16px 0;text-align:center}
   footer{text-align:center;color:#5B6C8C;font-size:13px;letter-spacing:.16em;text-transform:uppercase;margin:26px 0 10px}
@@ -205,7 +188,6 @@
 
   <nav class="tabs" role="tablist" aria-label="Secções">
     <button class="tab" role="tab" id="tab-act" aria-selected="true" data-view="act">Atividades</button>
-    <button class="tab" role="tab" id="tab-gifts" aria-selected="false" data-view="gifts">Prendas</button>
     <button class="tab" role="tab" id="tab-shop" aria-selected="false" data-view="shop">Compras</button>
   </nav>
 
@@ -264,77 +246,6 @@
           </div>
           <div class="full" style="text-align:right">
             <button class="btn-cta" id="a-save">Guardar atividade</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </section>
-
-  <!-- ======== PRENDAS ======== -->
-  <section id="view-gifts" role="tabpanel" aria-labelledby="tab-gifts" class="hidden">
-
-    <!-- ecrã 1: listagem -->
-    <div id="gifts-list">
-      <div class="section-head">
-        <h2>Prendas</h2>
-        <button class="btn-cta" id="go-add-gift">Nova prenda</button>
-      </div>
-      <div class="card totals-card">
-        <div class="totals-head">
-          <span class="lbl">Total por saldar</span>
-          <span class="amount" id="gifts-total"></span>
-        </div>
-        <div class="totals-grid">
-          <div class="totals-col">
-            <span class="lbl">Quem compra</span>
-            <div id="gifts-by-buyer"></div>
-          </div>
-          <div class="totals-col">
-            <span class="lbl">Quem dá</span>
-            <div id="gifts-by-giver"></div>
-          </div>
-          <div class="totals-col">
-            <span class="lbl">Para quem</span>
-            <div id="gifts-by-recipient"></div>
-          </div>
-        </div>
-      </div>
-      <div id="gifts-items"></div>
-    </div>
-
-    <!-- ecrã 2: nova prenda -->
-    <div id="gift-add" class="hidden">
-      <button class="back-btn" id="gift-add-back">‹ Voltar</button>
-      <div class="card">
-        <h2 style="margin-bottom:14px">Nova prenda</h2>
-        <div class="grid">
-          <div class="full">
-            <label for="g-item">Item</label>
-            <input id="g-item" placeholder="Bicicleta">
-          </div>
-          <div>
-            <label for="g-recipient">Para quem</label>
-            <input id="g-recipient" placeholder="Nome">
-          </div>
-          <div>
-            <label for="g-cat">Categoria</label>
-            <select id="g-cat"></select>
-          </div>
-          <div>
-            <label for="g-buyer">Quem compra</label>
-            <input id="g-buyer" placeholder="Nome">
-          </div>
-          <div>
-            <label for="g-giver">Quem dá</label>
-            <input id="g-giver" placeholder="Nome">
-          </div>
-          <div>
-            <label for="g-value">Valor (€)</label>
-            <input id="g-value" type="number" min="0" step="0.01" placeholder="0.00">
-          </div>
-          <div class="full" style="text-align:right">
-            <button class="btn-cta" id="g-save">Guardar prenda</button>
           </div>
         </div>
       </div>
@@ -424,11 +335,6 @@ const AGE_TONES = ["var(--pink)","var(--orange)","var(--yellow)","var(--lime)","
 const ageLabel = a => a==="todas" ? "Todas as idades" : a+" anos";
 const ageTone = a => a==="todas" ? "var(--peri)" : AGE_TONES[Number(a)%AGE_TONES.length];
 const cat = id => CATS.find(c=>c.id===id) || CATS[0];
-const GIFT_CATS = [
-  {id:"aniversario", label:"Aniversário", tone:"var(--pink)"},
-  {id:"natal",        label:"Natal",       tone:"var(--lime)"}
-];
-const giftCat = id => GIFT_CATS.find(c=>c.id===id) || GIFT_CATS[0];
 const MONTHS = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
 
 /* ---------------- ligação à base de dados (Supabase) ---------------- */
@@ -437,25 +343,21 @@ const SUPABASE_KEY = "sb_publishable_USK5NaKdSEoFQnROFr3fXg_gYb00Tsg";
 const supa = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
 /* ---------------- dados (guardados no Supabase, não no dispositivo) ---------------- */
-let data = {activities:[], shopping:[], gifts:[]};
+let data = {activities:[], shopping:[]};
 
 const mapActivityFromDb = r => ({ id:r.id, title:r.title, desc:r.description||"", category:r.category, age:r.age, date:r.activity_date||"", link:r.link||"" });
 const mapShoppingFromDb = r => ({ id:r.id, title:r.title, desc:r.description||"", category:r.category, age:r.age, link:r.link||"" });
-const mapGiftFromDb = r => ({ id:r.id, item:r.item, recipient:r.recipient||"", category:r.category, buyer:r.buyer||"", giver:r.giver||"", value:Number(r.value)||0, settled:!!r.settled });
 
 async function fetchAll(){
   if(!supa) return;
-  const [actRes, shopRes, giftRes] = await Promise.all([
+  const [actRes, shopRes] = await Promise.all([
     supa.from("kq_activities").select("*").order("activity_date", {ascending:true, nullsFirst:false}),
-    supa.from("kq_shopping").select("*").order("created_at", {ascending:false}),
-    supa.from("kq_gifts").select("*").order("created_at", {ascending:false})
+    supa.from("kq_shopping").select("*").order("created_at", {ascending:false})
   ]);
   if(actRes.error) console.error(actRes.error);
   if(shopRes.error) console.error(shopRes.error);
-  if(giftRes.error) console.error(giftRes.error);
   data.activities = (actRes.data||[]).map(mapActivityFromDb);
   data.shopping = (shopRes.data||[]).map(mapShoppingFromDb);
-  data.gifts = (giftRes.data||[]).map(mapGiftFromDb);
   renderAll();
 }
 
@@ -463,7 +365,6 @@ async function fetchAll(){
 const $ = s => document.querySelector(s);
 const uid = () => (crypto.randomUUID ? crypto.randomUUID() : "id-" + Date.now() + "-" + Math.random().toString(16).slice(2));
 const esc = s => String(s??"").replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-const formatEuro = v => (Number(v)||0).toLocaleString("pt-PT", {style:"currency", currency:"EUR"});
 function prettyDate(s){
   if(!s) return null;
   const [y,m,d] = s.split("-").map(Number);
@@ -483,7 +384,6 @@ function fillSelects(){
   const ageOpts = [`<option value="todas">Todas as idades</option>`, ...AGES.map(a=>`<option value="${a}">${a} anos</option>`)].join("");
   $("#a-cat").innerHTML = catOpts; $("#s-cat").innerHTML = catOpts;
   $("#a-age").innerHTML = ageOpts; $("#s-age").innerHTML = ageOpts;
-  $("#g-cat").innerHTML = GIFT_CATS.map(c=>`<option value="${c.id}">${c.label}</option>`).join("");
 }
 
 /* ---------------- navegação do separador Atividades ---------------- */
@@ -681,77 +581,11 @@ function renderShopping(){
   if(currentShopAge!==null) renderShopAgeDetail();
 }
 
-/* ---------------- separador Prendas ---------------- */
-function showGiftsScreen(name){
-  $("#gifts-list").classList.toggle("hidden", name!=="list");
-  $("#gift-add").classList.toggle("hidden", name!=="add");
-}
-
-$("#go-add-gift").onclick = () => {
-  ["#g-item","#g-recipient","#g-buyer","#g-giver","#g-value"].forEach(s=>$(s).value="");
-  $("#g-cat").value = GIFT_CATS[0].id;
-  showGiftsScreen("add");
-};
-$("#gift-add-back").onclick = () => showGiftsScreen("list");
-
-function giftCard(g){
-  const c = giftCat(g.category);
-  return `<article class="item ${g.settled?"settled":""}" style="--tone:${c.tone}">
-    <button class="del" data-del="${g.id}" data-kind="gifts" aria-label="Apagar ${esc(g.item)}">×</button>
-    <div class="body">
-      <h3>${esc(g.item)}</h3>
-      ${g.recipient?`<p>Para: ${esc(g.recipient)}</p>`:""}
-      <div class="meta">
-        <span class="pill">${c.label}</span>
-        ${g.buyer?`<span class="pill plain">Compra: ${esc(g.buyer)}</span>`:""}
-        ${g.giver?`<span class="pill plain">Dá: ${esc(g.giver)}</span>`:""}
-        <span class="pill plain">${formatEuro(g.value)}</span>
-      </div>
-      <button class="btn-cta settle-btn" data-settle="${g.id}">${g.settled?"Dívida saldada ✓":"Marcar como saldada"}</button>
-    </div>
-  </article>`;
-}
-
-function totalsByKey(list, keyFn){
-  const sums = {};
-  list.forEach(g=>{
-    const key = keyFn(g) || "Sem indicação";
-    sums[key] = (sums[key]||0) + g.value;
-  });
-  return Object.keys(sums).sort((a,b)=>a.localeCompare(b,"pt")).map(k=>({label:k, value:sums[k]}));
-}
-function totalRowsHtml(rows){
-  return rows.length
-    ? rows.map(r=>`<div class="buyer-row"><span>${esc(r.label)}</span><span>${formatEuro(r.value)}</span></div>`).join("")
-    : `<p class="totals-empty">Sem valores.</p>`;
-}
-
-function renderGifts(){
-  const itemsBox = $("#gifts-items");
-  itemsBox.innerHTML = data.gifts.length
-    ? `<div class="items">${data.gifts.map(giftCard).join("")}</div>`
-    : `<div class="empty-note"><strong>Ainda não há prendas</strong>Usa o botão "Nova prenda" para começar.</div>`;
-
-  const unsettled = data.gifts.filter(g=>!g.settled);
-  $("#gifts-total").textContent = formatEuro(unsettled.reduce((sum,g)=>sum+g.value, 0));
-
-  $("#gifts-by-buyer").innerHTML = totalRowsHtml(totalsByKey(unsettled, g=>g.buyer));
-  $("#gifts-by-giver").innerHTML = totalRowsHtml(totalsByKey(unsettled, g=>g.giver));
-
-  const byCatHtml = GIFT_CATS.map(c=>{
-    const inCat = unsettled.filter(g=>g.category===c.id);
-    if(!inCat.length) return "";
-    return `<div class="cat-group"><span class="cat-name">${c.label}</span>${totalRowsHtml(totalsByKey(inCat, g=>g.recipient))}</div>`;
-  }).join("");
-  $("#gifts-by-recipient").innerHTML = byCatHtml || `<p class="totals-empty">Sem valores.</p>`;
-}
-
 /* ---------------- separadores principais ---------------- */
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
   document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected", String(x===t)));
-  ["act","gifts","shop"].forEach(v=>$("#view-"+v).classList.toggle("hidden", v!==t.dataset.view));
+  ["act","shop"].forEach(v=>$("#view-"+v).classList.toggle("hidden", v!==t.dataset.view));
   if(t.dataset.view==="act"){ currentAge=null; showActScreen("home"); renderAgeGrid(); }
-  if(t.dataset.view==="gifts"){ showGiftsScreen("list"); renderGifts(); }
   if(t.dataset.view==="shop"){ currentShopAge=null; showShopScreen("home"); renderShopAgeGrid(); }
 });
 
@@ -796,35 +630,6 @@ $("#s-save").onclick = async () => {
   else showShopScreen("home");
 };
 
-/* ---------------- guardar nova prenda ---------------- */
-$("#g-save").onclick = async () => {
-  const item = $("#g-item").value.trim();
-  if(!item){ $("#g-item").focus(); $("#g-item").style.borderColor="var(--pink)"; return; }
-  $("#g-item").style.borderColor="var(--ink)";
-  const payload = {
-    item,
-    recipient: $("#g-recipient").value.trim() || null,
-    category: $("#g-cat").value,
-    buyer: $("#g-buyer").value.trim() || null,
-    giver: $("#g-giver").value.trim() || null,
-    value: Number($("#g-value").value) || 0
-  };
-  const { error } = await supa.from("kq_gifts").insert(payload);
-  if(error){ alert("Não foi possível guardar a prenda: " + error.message); return; }
-  ["#g-item","#g-recipient","#g-buyer","#g-giver","#g-value"].forEach(s=>$(s).value="");
-  await fetchAll();
-  showGiftsScreen("list");
-};
-
-/* ---------------- saldar dívida ---------------- */
-document.addEventListener("click", async e => {
-  const b = e.target.closest("[data-settle]"); if(!b) return;
-  const gift = data.gifts.find(g=>g.id===b.dataset.settle); if(!gift) return;
-  const { error } = await supa.from("kq_gifts").update({settled: !gift.settled}).eq("id", gift.id);
-  if(error){ alert("Não foi possível atualizar a prenda: " + error.message); return; }
-  await fetchAll();
-});
-
 /* ---------------- editar ---------------- */
 document.addEventListener("click", e => {
   const b = e.target.closest("[data-edit]"); if(!b) return;
@@ -833,7 +638,7 @@ document.addEventListener("click", e => {
 });
 
 /* ---------------- apagar ---------------- */
-const DEL_TABLES = {activities:"kq_activities", shopping:"kq_shopping", gifts:"kq_gifts"};
+const DEL_TABLES = {activities:"kq_activities", shopping:"kq_shopping"};
 document.addEventListener("click", async e => {
   const b = e.target.closest("[data-del]"); if(!b) return;
   const table = DEL_TABLES[b.dataset.kind] || "kq_shopping";
@@ -849,7 +654,6 @@ function renderAll(){
   renderAgeGrid();
   if(currentAge!==null) renderAgeDetail();
   renderShopping();
-  renderGifts();
 }
 
 fillSelects();
@@ -884,7 +688,7 @@ $("#login-pass").addEventListener("keydown", e => { if(e.key==="Enter") $("#logi
 
 $("#logout-btn").onclick = async () => {
   if(supa) await supa.auth.signOut();
-  data = {activities:[], shopping:[], gifts:[]};
+  data = {activities:[], shopping:[]};
   renderAll();
   showLogin();
 };
