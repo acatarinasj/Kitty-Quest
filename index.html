@@ -369,7 +369,7 @@
     <div id="shop-add" class="hidden">
       <button class="back-btn" id="sadd-back">‹ Voltar</button>
       <div class="card">
-        <h2 style="margin-bottom:14px">Nova compra</h2>
+        <h2 id="s-form-title" style="margin-bottom:14px">Nova compra</h2>
         <div class="grid">
           <div class="full">
             <label for="s-title">Título</label>
@@ -576,9 +576,9 @@ function itemCard(it, kind){
   const c = cat(it.category);
   const url = safeUrl(it.link);
   const date = prettyDate(it.date);
-  const canEdit = kind==="activities";
+  const canEdit = kind==="activities" || kind==="shopping";
   return `<article class="item ${canEdit?"has-edit":""}" style="--tone:${c.tone}">
-    ${canEdit?`<button class="edit" data-edit="${it.id}" aria-label="Editar ${esc(it.title)}">✎</button>`:""}
+    ${canEdit?`<button class="edit" data-edit="${it.id}" data-kind="${kind}" aria-label="Editar ${esc(it.title)}">✎</button>`:""}
     <button class="del" data-del="${it.id}" data-kind="${kind}" aria-label="Apagar ${esc(it.title)}">×</button>
     <div class="body">
       <h3>${esc(it.title)}</h3>
@@ -597,6 +597,7 @@ function itemCard(it, kind){
 let currentShopAge = null;
 let currentShopAgeCat = "all";
 let shopAddOrigin = "home";
+let editingShopId = null;
 
 function showShopScreen(name){
   $("#shop-home").classList.toggle("hidden", name!=="home");
@@ -604,8 +605,30 @@ function showShopScreen(name){
   $("#shop-add").classList.toggle("hidden", name!=="add");
 }
 
-$("#go-sadd-home").onclick = () => { shopAddOrigin="home"; $("#s-age").value = "todas"; showShopScreen("add"); };
-$("#go-sadd-age").onclick  = () => { shopAddOrigin="age"; $("#s-age").value = currentShopAge; showShopScreen("add"); };
+function resetShopForm(){
+  editingShopId = null;
+  $("#s-form-title").textContent = "Nova compra";
+  $("#s-save").textContent = "Guardar compra";
+  ["#s-title","#s-desc","#s-link"].forEach(s=>$(s).value="");
+}
+
+function openEditShopping(id){
+  const it = data.shopping.find(s=>s.id===id);
+  if(!it) return;
+  editingShopId = id;
+  shopAddOrigin = currentShopAge!==null ? "age" : "home";
+  $("#s-form-title").textContent = "Editar compra";
+  $("#s-save").textContent = "Guardar alterações";
+  $("#s-title").value = it.title;
+  $("#s-desc").value = it.desc;
+  $("#s-cat").value = it.category;
+  $("#s-age").value = it.age;
+  $("#s-link").value = it.link;
+  showShopScreen("add");
+}
+
+$("#go-sadd-home").onclick = () => { resetShopForm(); shopAddOrigin="home"; $("#s-age").value = "todas"; showShopScreen("add"); };
+$("#go-sadd-age").onclick  = () => { resetShopForm(); shopAddOrigin="age"; $("#s-age").value = currentShopAge; showShopScreen("add"); };
 $("#sadd-back").onclick    = () => showShopScreen(shopAddOrigin==="age" ? "age" : "home");
 $("#shop-age-back").onclick= () => { currentShopAge=null; showShopScreen("home"); };
 
@@ -763,9 +786,11 @@ $("#s-save").onclick = async () => {
     category: $("#s-cat").value, age: $("#s-age").value,
     link: $("#s-link").value.trim() || null
   };
-  const { error } = await supa.from("kq_shopping").insert(payload);
+  const { error } = editingShopId
+    ? await supa.from("kq_shopping").update(payload).eq("id", editingShopId)
+    : await supa.from("kq_shopping").insert(payload);
   if(error){ alert("Não foi possível guardar a compra: " + error.message); return; }
-  ["#s-title","#s-desc","#s-link"].forEach(s=>$(s).value="");
+  resetShopForm();
   await fetchAll();
   if(shopAddOrigin==="age"){ renderShopAgeDetail(); showShopScreen("age"); }
   else showShopScreen("home");
@@ -803,7 +828,8 @@ document.addEventListener("click", async e => {
 /* ---------------- editar ---------------- */
 document.addEventListener("click", e => {
   const b = e.target.closest("[data-edit]"); if(!b) return;
-  openEditActivity(b.dataset.edit);
+  if(b.dataset.kind==="shopping") openEditShopping(b.dataset.edit);
+  else openEditActivity(b.dataset.edit);
 });
 
 /* ---------------- apagar ---------------- */
